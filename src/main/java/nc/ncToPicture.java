@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import ncToPicture.*;
 
 /**
  * @Auther：jinguangshuai
@@ -30,7 +31,7 @@ public class ncToPicture {
     //生成等值线主方法
     public static Map<String, Object> isolineProcess() throws IOException {
         Map<String, Object> resMap = new HashMap<String, Object>();
-        String filePath = "C:/Users/JGS/Desktop/coldWave_2023030720_2023031020.nc";//文件路径
+        String filePath = "C:\\Users\\JGS\\Desktop\\coldWave_2023041308_2023041608.nc";//文件路径
         String element = "ColdWaveAlert";//nc变量名
         int depthIndex = 1;//nc文件深度序列
         int timeIndex = 1;//nc文件时间序列

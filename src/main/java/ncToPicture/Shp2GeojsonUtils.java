@@ -3,6 +3,7 @@ package ncToPicture;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.*;
 import org.geotools.data.FeatureWriter;
 import org.geotools.data.Transaction;
@@ -59,7 +60,7 @@ public class Shp2GeojsonUtils {
             String strType = ((JSONObject) feature0.get(GEOMETRY)).getString("type");
 //            String strCrs = json.getJSONObject("crs").getJSONObject(PROPERTIES).getString("name");
 //            CoordinateReferenceSystem crs = CRS.decode(strCrs);
-            ShapefileDataStore shapefileDataStore = dataStore(properties, strType, shpPath, DefaultGeographicCRS.WGS84);
+            ShapefileDataStore shapefileDataStore = dataStore(properties, strType, shpPath, null);
             if (shapefileDataStore == null) {
                 return map;
             }
@@ -93,7 +94,8 @@ public class Shp2GeojsonUtils {
                 while (iterator.hasNext()) {
                     String str = iterator.next().toString();
                     JSONObject element = JSONObject.parseObject(features.get(i).toString());
-                    feature.setAttribute(str, JSONObject.parseObject(element.getString(PROPERTIES)).get(str));
+//                    feature.setAttribute(str, JSONObject.parseObject(element.getString(PROPERTIES)).get(str));
+                    feature.setAttribute("value",JSONObject.parseObject(element.getString(PROPERTIES)).get("value"));
                 }
                 writer.write();
             }

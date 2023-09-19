@@ -18,7 +18,7 @@ import org.opengis.filter.FilterFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import javax.imageio.ImageIO;
-import java.awt.Stroke;
+import org.geotools.styling.Stroke;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -32,7 +32,14 @@ import java.util.Map;
  */
 public class Shape2Image{
 
-    private static MapContent map = new MapContent();
+//    private static MapContent map = new MapContent();
+
+    //默认常量
+    private static final Color LINE_COLOUR = Color.white;
+    private static final Color FILL_COLOUR = Color.CYAN;
+    private static final float LINE_OPACITY = 1.0f;
+    private static final float LINE_WIDTH = 0.1f;
+    private static final float POINT_SIZE = 10.0f;
     /**
      * 添加featureCollection等值面图层
      *
@@ -40,12 +47,13 @@ public class Shape2Image{
      * @param levelProps 色阶,结构如：{0.1:"#a5f38d"}
      * @param opacity 透明度
      */
-    public void addShapeLayer(FeatureCollection featureCollection, Map<Double,String> levelProps, float opacity) {
+    public MapContent addShapeLayer(FeatureCollection featureCollection, Map<Double,String> levelProps, float opacity) {
+        MapContent map = new MapContent();
         try {
             // 由坐标顺序引发坐标变换，这三行由于修正数据，不加的话会出现要素漏缺。
-//            SimpleFeatureType simpleFeatureType = (SimpleFeatureType) featureCollection.getSchema();
-//            String crs = CRS.lookupIdentifier(simpleFeatureType.getCoordinateReferenceSystem(), true);
-//            featureCollection = new ForceCoordinateSystemFeatureResults(featureCollection, CRS.decode(crs, true));
+            SimpleFeatureType simpleFeatureType = (SimpleFeatureType) featureCollection.getSchema();
+            String crs = CRS.lookupIdentifier(simpleFeatureType.getCoordinateReferenceSystem(), true);
+            featureCollection = new ForceCoordinateSystemFeatureResults(featureCollection, CRS.decode(crs, true));
             //创建样式
             StyleFactory sf = new StyleFactoryImpl();
             FilterFactory ff = new FilterFactoryImpl();
@@ -53,11 +61,14 @@ public class Shape2Image{
 
             for (Map.Entry entry:levelProps.entrySet()) {
                 double key = (Double) entry.getKey();
-                String value = (String) entry.getValue();
+//                String value = (String) entry.getValue();
+                Color value = (Color) entry.getValue();
 
+                //多边形填充颜色和透明度
                 Fill fill = sf.createFill(ff.literal(value),ff.literal(opacity));
-                Stroke stroke = (Stroke) sf.createStroke(ff.literal("#ffffff"),ff.literal(0),ff.literal(0));
-                Symbolizer symbolizer = sf.createPolygonSymbolizer((org.geotools.styling.Stroke) stroke, fill, "the_geom");
+                //线条颜色和透明度
+                Stroke stroke = sf.createStroke(ff.literal(LINE_COLOUR),ff.literal(LINE_WIDTH),ff.literal(LINE_OPACITY));
+                Symbolizer symbolizer = sf.createPolygonSymbolizer(stroke, fill, "the_geom");
                 Rule rule = sf.createRule();
                 rule.setName("dzm_"+key);
                 rule.symbolizers().add(symbolizer);
@@ -75,6 +86,7 @@ public class Shape2Image{
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return map;
     }
 
     /**
@@ -83,11 +95,11 @@ public class Shape2Image{
      * @param params
      * @param imgPath
      */
-    public void getMapContent(Map params, String imgPath) {
+    public void getMapContent(MapContent mapContent,Map params, String imgPath) {
         try {
             double[] bbox = (double[]) params.get("bbox");
-            double x1 = bbox[0], y1 = bbox[1],
-                    x2 = bbox[2], y2 = bbox[3];
+            double x1 = bbox[0], x2 = bbox[1],
+                    y1 = bbox[2], y2 = bbox[3];
             int width = Integer.parseInt(params.get("width").toString()) ,
                     height = Integer.parseInt(params.get("height").toString());
             // 设置输出范围
@@ -95,7 +107,7 @@ public class Shape2Image{
             ReferencedEnvelope mapArea = new ReferencedEnvelope(x1, x2, y1, y2, crs);
             // 初始化渲染器
             StreamingRenderer sr = new StreamingRenderer();
-            sr.setMapContent(map);
+            sr.setMapContent(mapContent);
             // 初始化输出图像
             BufferedImage bi = new BufferedImage(width, height,
                     BufferedImage.TYPE_INT_ARGB);

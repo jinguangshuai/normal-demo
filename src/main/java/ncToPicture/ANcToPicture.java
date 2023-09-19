@@ -9,6 +9,7 @@ import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.SchemaException;
+import org.geotools.map.MapContent;
 import org.locationtech.jts.geom.*;
 import org.opengis.feature.Feature;
 import ucar.nc2.NetcdfFile;
@@ -39,7 +40,7 @@ public class ANcToPicture {
 
     //生成等值线主方法
     public List<NCFileProcessData> isolineProcess() throws IOException {
-        String filePath = "C:\\Users\\JGS\\Desktop\\lightingPI_2023030720.nc";//文件路径
+        String filePath = "C:\\Users\\JGS\\Desktop\\coldWave_2023041308_2023041608.nc";//文件路径
         //获取NC的数据
         Map map = getNcData(filePath);
         if (map == null || map.size() == 0) {
@@ -55,7 +56,7 @@ public class ANcToPicture {
         long surfaceStartTimeCPolygonList = System.currentTimeMillis();
         String polygonGeoJson = FeatureUtil.getPolygonGeoJson(cPolygonList);
         //将geojson输出到json文件中
-        String jsonFilePath = "C:\\Users\\JGS\\Desktop\\LPIdata.json";
+        String jsonFilePath = "C:\\Users\\JGS\\Desktop\\test.json";
         FileOutputStream fos = new FileOutputStream(jsonFilePath);
         fos.write(polygonGeoJson.getBytes(StandardCharsets.UTF_8));
         fos.close();
@@ -65,7 +66,7 @@ public class ANcToPicture {
         //将geojson转化为shape
         System.out.println("将geojson转化为shape");
         long surfaceStartTimeShape = System.currentTimeMillis();
-        String shapePath = "C:\\Users\\JGS\\Desktop\\1\\LPIdata.shp";
+        String shapePath = "C:\\Users\\JGS\\Desktop\\1\\1.shp";
         Map<String, Object> stringObjectMap = Shp2GeojsonUtils.geoJson2Shape(jsonFilePath, shapePath);
         long surfaceEndTimeShape = System.currentTimeMillis();
         System.out.println("将geojson转化为shape耗时" + DateUtil.getCostTime(surfaceStartTimeShape, surfaceEndTimeShape));
@@ -102,16 +103,16 @@ public class ANcToPicture {
 //            levelProps.put(0.0, "#ffffff");
 //            levelProps.put(50.9999, "#ffffff");
 //            levelProps.put(51, "#ff0000");
-            float OPACITY = 0.5f;
-            shp2img.addShapeLayer(source, levelProps, OPACITY);
+            float OPACITY = 0.1f;
+            MapContent mapContent = shp2img.addShapeLayer(source, levelProps, OPACITY);
             //输出图片
-            String outPath = "C:\\Users\\JGS\\Desktop\\lightingPI_2023030720.png";
+            String outPath = "C:\\Users\\JGS\\Desktop\\coldWave_2023030720_2023031020.png";
             Map params = new HashMap();
             double[] bbox = new double[]{73.68, 18.16, 135.083, 53.555};
             params.put("width", 792);
             params.put("height", 585);
             params.put("bbox", bbox);
-            shp2img.getMapContent(params, outPath);
+            shp2img.getMapContent(mapContent,params, outPath);
 
             long surfaceEndTimePicture = System.currentTimeMillis();
             System.out.println("绘图耗时" + DateUtil.getCostTime(surfaceStartTimePicture, surfaceEndTimePicture));
@@ -131,7 +132,7 @@ public class ANcToPicture {
         //读取维度
         Variable varLat = ncfile.findVariable(latVarName);
         //读取具体值
-        Variable codeWaveVar = ncfile.findVariable(ConstantUtil.LIGHTINGPI_LPIDATA);
+        Variable codeWaveVar = ncfile.findVariable(ConstantUtil.COLDWAVE_COLDWAVEALERT);
         Map map = new HashMap();
         //获取nc文件，经度、维度、具体值
         map = readNCLonLatFloat(varLon, varLat, codeWaveVar);
@@ -207,7 +208,7 @@ public class ANcToPicture {
         // 纬度
         double[][] _Y = (double[][]) map.get("XLAT");
         // 3维数据
-        double[][] codeWaveData = (double[][]) map.get("LPIdata");
+        double[][] codeWaveData = (double[][]) map.get("ColdWaveAlert");
         // 获取网格数据，根据指定网省坐标获取指定数据
         double[][] _gridData = new double[codeWaveData.length][codeWaveData[0].length];
 
@@ -263,7 +264,7 @@ public class ANcToPicture {
                     mainRing = geometryFactory.createLinearRing(coordinates);
                 }else{
                     Coordinate[] coordinatesClose = new Coordinate[pPolygon.OutLine.PointList.size()+1];
-                    System.arraycopy(coordinates,0,coordinatesClose,0,coordinatesClose.length-1);
+
                     coordinatesClose[coordinates.length] = coordinates[0];
                     mainRing = geometryFactory.createLinearRing(coordinatesClose);
                 }
@@ -272,22 +273,14 @@ public class ANcToPicture {
                 LinearRing[] holeRing = new LinearRing[pPolygon.HoleLines.size()];
                 for (int i = 0; i < pPolygon.HoleLines.size(); i++) {
                     PolyLine hole = pPolygon.HoleLines.get(i);
-                    Coordinate[] coordinatesHole = new Coordinate[hole.PointList.size()];
+                    Coordinate[] coordinates_h = new Coordinate[hole.PointList.size()];
                     for (int j = 0, len = hole.PointList.size(); j < len; j++) {
                         PointD ptd = hole.PointList.get(j);
 //                        coordinates_h[j] = new Coordinate(ptd.X,ptd.Y);
-                        coordinatesHole[j] = new Coordinate(new BigDecimal(ptd.X).setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue(),
+                        coordinates_h[j] = new Coordinate(new BigDecimal(ptd.X).setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue(),
                                 new BigDecimal(ptd.Y).setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue());
                     }
-                    //判断线性坐标点是否闭合,如果无法闭合手动闭合
-                    if(coordinatesHole[0]==coordinatesHole[coordinatesHole.length-1]){
-                        holeRing[i] = geometryFactory.createLinearRing(coordinatesHole);
-                    }else{
-                        Coordinate[] coordinatesHoleClose = new Coordinate[hole.PointList.size()+1];
-                        System.arraycopy(coordinatesHole,0,coordinatesHoleClose,0,coordinatesHoleClose.length-1);
-                        coordinatesHoleClose[coordinatesHole.length] = coordinatesHole[0];
-                        holeRing[i] = geometryFactory.createLinearRing(coordinatesHoleClose);
-                    }
+                    holeRing[i] = geometryFactory.createLinearRing(coordinates_h);
                 }
                 org.locationtech.jts.geom.Polygon geo = geometryFactory.createPolygon(mainRing, holeRing);
                 Map<String, Object> map = new HashMap<String, Object>();

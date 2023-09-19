@@ -45,7 +45,15 @@ public class FeatureUtil {
         String properties = ",\"properties\":{ \"value\":";
 
         String head = "{\"type\": \"FeatureCollection\"," + "\"features\": [";
-        String end = "  ] }";
+//        String end = "  ] }";
+        String end = "],\n" +
+                "    \"crs\":{\n" +
+                "        \"type\":\"name\",\n" +
+                "        \"properties\":{\n" +
+                "            \"name\":\"urn:ogc:def:crs:OGC:1.3:CRS84\"\n" +
+                "        }\n" +
+                "    }\n" +
+                "}";
         if (cPolygonList == null || cPolygonList.size() == 0) {
             return null;
         }
@@ -84,7 +92,7 @@ public class FeatureUtil {
      */
     public static double doubleFormat(double d) {
         BigDecimal bg = new BigDecimal(d);
-        double f1 = bg.setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+        double f1 = bg.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
         return f1;
     }
 

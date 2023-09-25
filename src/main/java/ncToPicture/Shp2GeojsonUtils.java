@@ -94,8 +94,8 @@ public class Shp2GeojsonUtils {
                 while (iterator.hasNext()) {
                     String str = iterator.next().toString();
                     JSONObject element = JSONObject.parseObject(features.get(i).toString());
-//                    feature.setAttribute(str, JSONObject.parseObject(element.getString(PROPERTIES)).get(str));
-                    feature.setAttribute("value",JSONObject.parseObject(element.getString(PROPERTIES)).get("value"));
+                    feature.setAttribute(str, JSONObject.parseObject(element.getString(PROPERTIES)).get(str));
+//                    feature.setAttribute("value",JSONObject.parseObject(element.getString(PROPERTIES)).get("value"));
                 }
                 writer.write();
             }
@@ -110,6 +110,9 @@ public class Shp2GeojsonUtils {
         }
         return map;
     }
+
+
+
 
     /**
      * 读取geojosn文件

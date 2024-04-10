@@ -128,7 +128,7 @@ public class NCInitUtils {
 
         //边界裁切
         //形成区域Geojson
-        String clipGeoJson = FeatureUtil.getPolygonGeoJsonByString(readGeoJsonFile("C:\\Users\\JGS\\Desktop\\china.json"));
+        String clipGeoJson = FeatureUtil.getPolygonGeoJsonByString(readGeoJsonFile("C:\\Users\\JGS\\Desktop\\NCToPicture\\china.json"));
         //形成区域SimpleFeatureCollection
         FeatureJSON fjson = new FeatureJSON();
         FeatureCollection featureCollection = null;
